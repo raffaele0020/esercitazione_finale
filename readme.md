@@ -6,35 +6,41 @@ https://github.com/MrMagicalSoftware/docker-k8s/blob/main/esercitazione-docker-f
 
 ## *CREAZIONE RISORSE AZURE*
 
-login su azure
+Per cominciare, dobbiamo accedere al nostro account Azure tramite la riga di comando, questo comando aprirà una finestra del browser dove dovremo inserire le nostre credenziali Azure. Una volta effettuato l'accesso, torneremo automaticamente sulla riga di comando.
 ```
 az login
 ```
 ![image](https://github.com/user-attachments/assets/1e9b26ec-9b90-4692-984e-b1ef48317fb1)
 
-impostiamo il nostro account mettendo la sottoscrizione
+Se abbiamo più sottoscrizioni, dobbiamo selezionare quella corretta. Per farlo, eseguiamo:
 ```
 az account set --subscription "b7b99826-3835-4054-891a-696b78a0d1ba"
 ```
 
 
-settiamo il path dove andranno tutti i file dell'esercitazione finale
+Per organizzare al meglio il nostro lavoro, creiamo una cartella dove verranno salvati tutti i file relativi a questa esercitazione. Andiamo quindi nella cartella del nostro progetto con:
 ```
 cd C:\Users\tufan\esercitazione_finale
 ```
-inizializziamo terraform
+Ora dobbiamo inizializzare Terraform per prepararlo alla creazione delle risorse, questo scarica i plugin necessari per il provider Azure e imposta l'ambiente di lavoro. Eseguiamo il comando:
 ```
 terraform init
 ```
-vediamo quali risorse verranno create
+Prima di creare le risorse, possiamo vedere cosa verrà creato da Terraform con il comando
 ```
 terraform plan
 ```
-#creazione della chiave pubblica
+Per accedere alla VM che Terraform creerà, dobbiamo generare una chiave SSH, accettiamo il percorso predefinito per la chiave, premendo 2 volte invio. Eseguiamo il comando:
+
 ```
 ssh-keygen -t rsa -b 4096
 ```
+
+Finalmente, possiamo applicare le configurazioni di Terraform per creare tutte le risorse su Azure. Eseguiamo:
+
+```
 terraform apply
+```
 
 Abbiamo concluso con la creazione delle risorse azure.
 
@@ -42,30 +48,35 @@ Abbiamo concluso con la creazione delle risorse azure.
 
 ## *Configurazione del cluster K3s:*
 
-login alla vm da ps
+Dopo che Terraform ha creato la nostra infrastruttura, possiamo accedere alla VM appena creata usando il comando SSH, dove 51.145.165.106 è l'indirizzo IP pubblico della VM che ci fornirà Terraform.
+
 ```
 ssh raffaeleuser@51.145.165.106
 ```
 ![image](https://github.com/user-attachments/assets/f43a393b-f31d-4fff-92d3-477ed24a5bf0)
 
-installazione di docker 
+Ora dobbiamo installare Docker sulla nostra VM per poter containerizzare l'applicazione. Eseguiamo il comando: 
 ```
 curl -fsSL https://get.docker.com | sudo bash
+```
+Dopo aver installato Docker, aggiungiamo l'utente corrente al gruppo Docker, in modo da poter usare i comandi Docker senza dover usare sudo ogni volta:
+```
 sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-installazione di k3s come server 
+Per installare K3s (una versione leggera di Kubernetes), eseguiamo:
 ```
 curl -sfL https://get.k3s.io | sh -
 ```
-controllo quindi lo stato del nodo
+Questo comando installerà K3s e lo avvierà automaticamente,dovremmo vedere un nodo "Ready" che rappresenta il nostro master K3s. Verifichiamo che K3s sia in esecuzione con:
+
 ```
 sudo kubectl get nodes
 ```
 ![image](https://github.com/user-attachments/assets/2403fa35-0c10-47d4-afb2-af0873b560f2)
 
-#creo hello-docker
+Creiamo una nuova cartella per il nostro progetto Docker. La chiamiamo hello-docker
 ```
 mkdir hello-docker
 ```
@@ -75,33 +86,33 @@ cd hello-docker
 ```
 ![image](https://github.com/user-attachments/assets/b683954f-c8fa-46ec-a592-3256327a5ad6)
 
-con nano app.js lo creo
+All'interno della cartella, creiamo un file app.js che contiene il codice per la nostra applicazione Node.js. Eseguiamo:
 ```
 nano app.js
 ```
 ![image](https://github.com/user-attachments/assets/3d87746b-1398-4c50-975f-60ddea56beb0)
 
-stesso per package.json
+Creiamo un file package.json per definire le dipendenze del progetto. Eseguiamo:
 ```
 nano package.json
 ```
 ![image](https://github.com/user-attachments/assets/ee543f50-5007-4f10-89e5-9c1e85065728)
 
-installo le dipendenze
+Installiamo le dipendenze, le librerie necessarie per il progetto, con il comando:
 ```
 sudo apt install npm e poi npm install
 ```
-creazione del dockerfile
+Ora creiamo il Dockerfile per containerizzare l'applicazione. Eseguiamo:
 ```
 nano Dockerfile
 ```
 ![image](https://github.com/user-attachments/assets/8301da6f-f0ec-47f4-8ac9-3b96b982efb6)
 
-costruzione dell'immagine docker
+Adesso possiamo costruire l'immagine Docker per l'applicazione:
 ```
 sudo docker build -t hello-docker .
 ```
-controllo che sia stata creata
+cVerifichiamo che l'immagine sia stata creata con:
 ```
 sudo docker images
 ```
@@ -110,7 +121,8 @@ sudo docker images
 
 ## *Deployment dell'applicazione:*
 
-creo i file yaml per il deployment
+Creiamo un file YAML per definire il deployment dell'applicazione su K3s. Eseguiamo:
+
 ```
 nano deployment.yaml
 ```
@@ -123,19 +135,19 @@ nano service.yaml
 
 ![image](https://github.com/user-attachments/assets/b82fab4e-bbaf-4206-bbac-cb90cd56f510)
 
-li applico entrambi con comando admin
+Applichiamo i file YAML a K3s per creare il deployment e il servizio:
 ```
 sudo kubectl apply -f deployment.yaml
 sudo kubectl apply -f service.yaml
 ```
-verifico i pods
+Verifica lo stato dei pod e del servizio con:
 ```
 sudo kubectl get pods
 ```
 
 ![image](https://github.com/user-attachments/assets/77a0e0f3-447c-42b0-9afc-c32a9371ab9f)
 
-vado sul browser del mio pc tramite ip pubblico e porta e verifico l'helloworld
+Ora, per verificare che tutto funzioni correttamente, apriamo un browser e accediamo all'applicazione utilizzando l'IP pubblico della nostra VM e la porta 30080:
 ```
 http://51.145.165.106:30080/
 ```
@@ -144,4 +156,7 @@ http://51.145.165.106:30080/
 Alberatura finale del progetto
 
 ![image](https://github.com/user-attachments/assets/3eb46e26-4765-4820-9f2b-71f4b042c28f)
+
+
+Abbiamo configurato un cluster K3s su Azure, installato Docker e Kubernetes (K3s), creato un'applicazione Node.js, containerizzato l'applicazione con Docker, e infine distribuito l'applicazione nel cluster Kubernetes. Ora l'app è accessibile pubblicamente tramite il servizio NodePort su Azure.
 
