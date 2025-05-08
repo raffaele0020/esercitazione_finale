@@ -153,10 +153,6 @@ http://51.145.165.106:30080/
 ```
 ![image](https://github.com/user-attachments/assets/d1dfbf7d-3a95-4318-bd94-651cd694a246)
 
-Alberatura finale del progetto
-
-![image](https://github.com/user-attachments/assets/3eb46e26-4765-4820-9f2b-71f4b042c28f)
-
 
 Abbiamo configurato un cluster K3s su Azure, installato Docker e Kubernetes (K3s), creato un'applicazione Node.js, containerizzato l'applicazione con Docker, e infine distribuito l'applicazione nel cluster Kubernetes. Ora l'app è accessibile pubblicamente tramite il servizio NodePort su Azure.
 
