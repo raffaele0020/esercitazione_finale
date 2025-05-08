@@ -3,9 +3,6 @@ provider "azurerm" {
   subscription_id = "b7b99826-3835-4054-891a-696b78a0d1ba"
 }
 
-# IMPORTANTE: Tutte le definizioni di variabili sono state rimosse da qui
-# e spostate in variables.tf
-
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
